@@ -19,7 +19,6 @@ from config.settings import (
 from src.parsers.docx_parser import DocxParser
 from src.parsers.pdf_parser import PdfParser
 from src.metrics.extractor import MetricsExtractor
-from src.ai.huggingface_client import HuggingFaceClient
 from src.ai.analyzer import ContentAnalyzer
 from src.output.json_reporter import JsonReporter
 from src.output.summary_reporter import SummaryReporter
@@ -73,8 +72,20 @@ def process_document(
           f"Sections: {metrics['heading_count']}")
 
     # 3. AI analysis
-    print("\n[3/4] Running AI analysis via Hugging Face...")
-    client = HuggingFaceClient(model=hf_model, api_key=hf_api_key)
+    from config import settings as cfg
+
+    backend = cfg.LLM_BACKEND
+    print(f"\n[3/4] Running AI analysis via {backend.title()}...")
+
+    if backend == "ollama":
+        from src.ai.ollama_client import OllamaClient
+        client = OllamaClient(model=cfg.OLLAMA_MODEL, base_url=cfg.OLLAMA_BASE_URL, timeout=cfg.OLLAMA_TIMEOUT)
+        used_model = cfg.OLLAMA_MODEL
+    else:
+        from src.ai.huggingface_client import HuggingFaceClient
+        client = HuggingFaceClient(model=hf_model, api_key=hf_api_key)
+        used_model = hf_model
+
     analyzer = ContentAnalyzer(client)
     analysis = analyzer.analyze(document, metrics)
     print(f"      ✓ Readability: {analysis.get('readability_level', 'N/A')}")
@@ -111,7 +122,7 @@ def process_document(
             db_name=mongodb_db,
             collection_name=mongodb_collection,
         )
-        row_id = store.save_result(result, source_path=str(path), ai_model=hf_model)
+        row_id = store.save_result(result, source_path=str(path), ai_model=used_model)
         print(
             f"      ✓ Saved to MongoDB → {mongodb_uri} "
             f"({mongodb_db}.{mongodb_collection}, row {row_id})"

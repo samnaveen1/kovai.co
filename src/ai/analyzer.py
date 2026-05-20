@@ -8,7 +8,6 @@ import re
 from typing import Dict, Any
 
 from src.parsers.document_model import DocumentModel
-from src.ai.huggingface_client import HuggingFaceClient, HuggingFaceError
 from src.ai.prompts import SYSTEM_PROMPT, build_analysis_prompt
 
 
@@ -24,7 +23,8 @@ class ContentAnalyzer:
         result   = analyzer.analyze(document, metrics)
     """
 
-    def __init__(self, client: HuggingFaceClient):
+    def __init__(self, client):
+        # Client must implement .is_available() and .generate(prompt, system=None)
         self.client = client
 
     # ------------------------------------------------------------------ public
@@ -38,19 +38,16 @@ class ContentAnalyzer:
         )
 
         # --- check provider availability ----------------------------------
-        if not self.client.is_available():
-            print("      ⚠  Hugging Face not reachable — using rule-based fallback analysis")
+        if not getattr(self.client, "is_available", lambda: True)():
+            print(f"      ⚠  {type(self.client).__name__} not reachable — using rule-based fallback analysis")
             return self._fallback_analysis(document, metrics)
 
         # --- call provider ------------------------------------------------
         try:
             response = self.client.generate(prompt=prompt, system=SYSTEM_PROMPT)
             return self._parse_json_response(response)
-        except HuggingFaceError as e:
-            print(f"      ⚠  Hugging Face error: {e}\n         Using rule-based fallback.")
-            return self._fallback_analysis(document, metrics)
         except Exception as e:
-            print(f"      ⚠  Unexpected AI error: {e}\n         Using rule-based fallback.")
+            print(f"      ⚠  AI provider error ({type(self.client).__name__}): {e}\n         Using rule-based fallback.")
             return self._fallback_analysis(document, metrics)
 
     # ----------------------------------------------------------------- private

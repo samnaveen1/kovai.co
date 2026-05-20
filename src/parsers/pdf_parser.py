@@ -22,6 +22,13 @@ def _parse_with_pymupdf(file_path: Path, model: DocumentModel) -> DocumentModel:
 
     for page_num, page in enumerate(pdf, start=1):
         blocks = page.get_text("dict")["blocks"]
+        # Count images on the page (PyMuPDF)
+        try:
+            images = page.get_images(full=True)
+            model.images_count += len(images)
+        except Exception:
+            # get_images may not be supported in some versions; ignore
+            pass
         for block in blocks:
             if block["type"] != 0:  # 0 = text block
                 continue
@@ -71,6 +78,18 @@ def _parse_with_pdfminer(file_path: Path, model: DocumentModel) -> DocumentModel
     pages = list(extract_pages(str(file_path)))
     model.page_count = len(pages)
     model.raw_text = text
+
+    # Try to count images via pdfminer's LTImage objects if available
+    try:
+        from pdfminer.layout import LTImage
+        img_count = 0
+        for page_layout in pages:
+            for element in page_layout:
+                if isinstance(element, LTImage):
+                    img_count += 1
+        model.images_count = img_count
+    except Exception:
+        model.images_count = 0
 
     for line in text.splitlines():
         stripped = line.strip()

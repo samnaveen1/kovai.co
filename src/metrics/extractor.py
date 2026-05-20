@@ -42,6 +42,7 @@ class MetricsExtractor:
         lexical_density  = round(unique_words / max(word_count, 1) * 100, 1)
         empty_sections   = self._empty_section_count(headings, paragraphs)
         duplicate_heads  = self._duplicate_headings(headings)
+        image_count       = getattr(self.doc, "images_count", 0)
 
         return {
             # basic counts
@@ -62,6 +63,7 @@ class MetricsExtractor:
             "list_item_count":       list_item_count,
             "link_count":            link_count,
             "code_block_count":      code_block_count,
+            "image_count":           image_count,
 
             # quality signals
             "unique_word_count":     unique_words,

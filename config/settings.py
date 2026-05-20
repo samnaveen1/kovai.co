@@ -3,6 +3,17 @@
 # Override any value by setting the matching environment variable.
 
 import os
+from pathlib import Path
+
+# Load environment variables from a local .env file when present
+try:
+	from dotenv import load_dotenv
+	env_path = Path(__file__).resolve().parents[1] / '.env'
+	if env_path.exists():
+		load_dotenv(env_path)
+except Exception:
+	# If python-dotenv is not installed, silently continue using system env vars
+	pass
 
 # ── Ollama settings ────────────────────────────────────────────────────────────
 OLLAMA_BASE_URL  = os.getenv("OLLAMA_BASE_URL",  "http://localhost:11434")
@@ -27,6 +38,10 @@ HUGGING_FACE_MODEL   = os.getenv(
 
 # ── Parser settings ───────────────────────────────────────────────────────────
 MAX_EXCERPT_CHARS = int(os.getenv("MAX_EXCERPT_CHARS", "1500"))
+
+# Which LLM backend to use: 'huggingface' or 'ollama'
+LLM_BACKEND = os.getenv("LLM_BACKEND", "huggingface").lower()
+
 
 # ── Metrics thresholds (used by fallback heuristics) ─────────────────────────
 WORDS_PER_PAGE_ESTIMATE    = 350

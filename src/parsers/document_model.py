@@ -31,6 +31,7 @@ class DocumentModel:
     paragraphs: List[Paragraph] = field(default_factory=list)
     raw_text: str = ""
     page_count: int = 0
+    images_count: int = 0
     metadata: dict = field(default_factory=dict)
 
     # ------------------------------------------------------------------ helpers
