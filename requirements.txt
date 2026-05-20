@@ -1,0 +1,21 @@
+# Core document parsing
+python-docx>=1.1.0        # .docx parsing
+pymupdf>=1.24.0           # PDF parsing (recommended)
+pdfminer.six>=20221105    # PDF parsing fallback
+streamlit>=1.36.0         # UI dashboard
+pymongo>=4.8.0            # MongoDB persistence
+
+# No additional dependencies needed for Ollama — uses stdlib urllib
+# No API key required — Ollama runs locally
+
+# Optional: for running tests
+pytest>=8.0.0
+
+# Additional optional dependencies for the multi-format analysis tool
+pdfplumber>=0.7.6
+beautifulsoup4>=4.12.2
+pytesseract>=0.3.10
+pillow>=10.0.0
+python-pptx>=0.6.21
+lxml>=4.9.3
+tqdm>=4.65.0
