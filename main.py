@@ -111,7 +111,7 @@ def process_document(
         print(f"      ✓ JSON report → {json_path}")
 
     if output_format in ("summary", "both"):
-        summary_path = out_dir / f"{stem}_summary.txt"
+        summary_path = out_dir / f"{stem}_summary.md"
         SummaryReporter(result).save(summary_path)
         print(f"      ✓ Summary report → {summary_path}")
 

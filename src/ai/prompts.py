@@ -10,6 +10,12 @@ into a knowledge base platform like Document360.
 Always respond ONLY with valid JSON — no markdown fences, no extra text.
 """
 
+CHAT_SYSTEM_PROMPT = """You are a helpful document migration assistant.
+Answer using only the provided document metrics and AI analysis.
+Be concise, practical, and do not invent details that are not present in the context.
+If the answer is not available in the context, say so clearly.
+"""
+
 ANALYSIS_PROMPT_TEMPLATE = """Analyse the following document excerpt and its metrics.
 Provide a comprehensive migration readiness assessment.
 
@@ -64,4 +70,39 @@ def build_analysis_prompt(title, file_type, metrics, excerpt) -> str:
         file_type=file_type.upper(),
         metrics_text=metrics_text,
         excerpt=excerpt[:1500],
+    )
+
+
+CHAT_PROMPT_TEMPLATE = """Document title: {title}
+File type: {file_type}
+
+Metrics:
+{metrics_text}
+
+AI analysis:
+{analysis_text}
+
+User question:
+{question}
+
+Answer in 1-3 short paragraphs. Use plain English and refer to the document data above.
+"""
+
+
+def build_chat_prompt(title, file_type, metrics, ai_analysis, question) -> str:
+    metrics_text = "\n".join(
+        f"  {k}: {v}" for k, v in metrics.items()
+        if not isinstance(v, dict)
+    )
+    if "heading_distribution" in metrics:
+        metrics_text += "\n  heading_distribution: " + str(metrics["heading_distribution"])
+
+    analysis_text = "\n".join(f"  {k}: {v}" for k, v in ai_analysis.items())
+
+    return CHAT_PROMPT_TEMPLATE.format(
+        title=title or "(untitled)",
+        file_type=file_type.upper(),
+        metrics_text=metrics_text,
+        analysis_text=analysis_text,
+        question=question.strip(),
     )

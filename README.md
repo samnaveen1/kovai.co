@@ -317,3 +317,37 @@ environment variables:
 **Use a different AI backend** (e.g., OpenAI-compatible API):
 - Implement the same `generate(prompt, system)` interface as `HuggingFaceClient`
 - Pass your custom client to `ContentAnalyzer`
+
+---
+
+## Interview Talking Points
+
+### Why this LLM / backend
+- Capability: chosen for instruction-following and structured JSON output, making parsing reliable.
+- Tradeoffs: balance quality vs latency/cost; prefer local Ollama for sensitive data and Hugging Face for high-quality hosted models.
+- Robustness: pipeline supports swapping backends and falls back to deterministic heuristics when AI is unavailable.
+
+### How to explain key metrics (short answers)
+- `page_count`, `word_count`: scale and effort estimates.
+- `heading_count`, `max_heading_depth`: document structure and navigability—useful for mapping to CMS sections.
+- `avg_words_per_paragraph` (6.9): very short paragraphs → easier editorial migration, may indicate lists.
+- `image_count` (209): primary engineering cost (asset extraction, alt text, hosting).
+- `link_count`: requires validation; broken links are migration blockers.
+- `duplicate_headings` / `empty_sections`: clean-up items that reduce automation confidence.
+
+### How to explain the AI analysis output
+- `readability_level` & `readability_reason`: derived from avg words per paragraph/sentence.
+- `structural_quality` & `structure_notes`: based on heading-to-paragraph ratios and duplicate headings.
+- `readiness_score` & `migration_readiness`: composite heuristic (transparent weights) combining headings, word count, duplicates, and empty sections.
+- `strengths`, `issues`, `suggestions`: actionable checklist for editors and engineers.
+
+### Handling apparent contradictions (example)
+- If `readiness_score` is high but `image_count` is large: explain that textual readiness and asset migration effort are orthogonal; both are surfaced so teams can plan editorial vs engineering work separately.
+
+### Two‑sentence interview script
+"I chose an LLM based on quality, cost, and privacy tradeoffs and designed the pipeline so it can swap backends and fallback to deterministic heuristics. The metrics quantify textual readiness while the AI maps these signals into an actionable readiness score and prioritized remediation steps."
+
+### Quick demo guide for interviews
+- Show Streamlit: upload 2 files, open each tab, download JSON for one file.
+- Show CLI: run `python main.py sample_input/example.pdf` and open the generated JSON in `sample_output/`.
+
